@@ -49,6 +49,7 @@ jobs:
           else
             pdf_name="$(basename "$project_path").pdf"
           fi
+          mkdir -p artifacts
           mv "$project_path/build/main.pdf" "artifacts/$pdf_name"
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
