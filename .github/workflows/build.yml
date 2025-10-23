@@ -37,7 +37,7 @@ jobs:
         run: mise run install-tex-packages
       - name: Build PDF for ${{ matrix.project }}
         run: |
-          mise cd "${{ matrix.project }}"
+          cd "${{ matrix.project }}"
           mise run build
       # Set pdf name based on project path
       - name: Rename and move PDF
