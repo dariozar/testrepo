@@ -55,4 +55,4 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          files: ${{ steps.rename-pdf.outputs.pdf_name }}.pdf
+          files: ${{ steps.rename-pdf.outputs.pdf_name }}
