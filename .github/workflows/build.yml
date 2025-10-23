@@ -80,6 +80,5 @@ jobs:
       # Create or update release and upload PDF
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          target_commitish: ${{ github.sha }}
-          files: artifacts/*.pdf
+          tag_name: latest
+          files: 'artifacts/*.pdf'
