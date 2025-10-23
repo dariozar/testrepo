@@ -49,7 +49,7 @@ jobs:
           else
             pdf_name="$(basename "$project_path").pdf"
           fi
-          mv "$project_path/main.pdf" "$pdf_name"
+          mv "$project_path/build/main.pdf" "$pdf_name"
           echo "pdf_name=$pdf_name" >> $GITHUB_OUTPUT
       # Create or update release and upload PDF
       - uses: softprops/action-gh-release@v2
