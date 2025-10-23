@@ -20,7 +20,7 @@ jobs:
           json=$(echo "$projects" | jq -R -s -c 'split("\n") - [""]')
           echo "projects=$json" >> $GITHUB_OUTPUT
 
-  build_and_release:
+  build:
     runs-on: ubuntu-latest
     needs: discover
     strategy:
@@ -49,11 +49,35 @@ jobs:
           else
             pdf_name="$(basename "$project_path").pdf"
           fi
-          mv "$project_path/build/main.pdf" "$pdf_name"
-          echo "pdf_name=$pdf_name" >> $GITHUB_OUTPUT
+          mv "$project_path/build/main.pdf" "artifacts/$pdf_name"
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: all-pdfs
+          path: artifacts/*.pdf
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write  # needed for creating releases
+    steps:
+      - uses: actions/checkout@v5
+      - name: Tag as latest if on main branch
+        if: github.ref_name == 'main'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git tag -f latest
+          git push origin latest --force
+      - name: Download built PDFs
+        uses: actions/download-artifact@v3
+        with:
+          name: all-pdfs
+          path: artifacts
       # Create or update release and upload PDF
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           target_commitish: ${{ github.sha }}
-          files: ${{ steps.rename-pdf.outputs.pdf_name }}
+          files: artifacts/*.pdf
