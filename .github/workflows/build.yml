@@ -16,11 +16,8 @@ jobs:
       - uses: actions/checkout@v5
       - id: set-matrix
         run: |
-          projects=$(find . -name main.tex -printf '%h\n' | sed 's|^\./||')
-          if [ -f main.tex ]; then
-            projects=$(echo -e ".\n$projects")
-          fi
-          json=$(echo "$projects" | jq -R . | jq -s .)
+          projects=$(find . -type f -name 'main.tex' -exec dirname {} \;)
+          json=$(echo "$projects" | jq -R -s -c 'split("\n") - [""]')
           echo "projects=$json" >> $GITHUB_OUTPUT
 
   build_and_release:
