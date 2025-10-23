@@ -1,0 +1,28 @@
+name: build PDF
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  workflow_dispatch:  # allows manual running of the workflow
+  
+jobs:
+  build_and_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed for creating releases
+    steps:
+      - uses: actions/checkout@v5
+      # Set up Mise
+      - uses: jdx/mise-action@v3
+      # Install tex packages and build
+      - run: mise run install-tex-packages
+      - run: mise run build
+      # Rename PDF to repo name
+      - run: mv build/main.pdf ${{ github.event.repository.name }}.pdf
+      # Create or update release and upload PDF
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: ${{ github.event.repository.name }}.pdf

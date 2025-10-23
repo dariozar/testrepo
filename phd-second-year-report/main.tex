@@ -1,0 +1,99 @@
+\documentclass[a4paper, 10pt]{scrartcl}
+\usepackage[a4paper,top=2.9cm,bottom=2.9cm,left=2.7cm,right=2.7cm]{geometry}
+\usepackage[utf8]{inputenc}
+% PACCHETTO PER LA LINGUA
+\usepackage[english]{babel}
+% PACCHETTI PER EQUAZIONI E SIMBOLI MATEMATICI
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{mathabx}
+\usepackage{mathtools}
+%\usepackage{cancel}
+% PACCHETTI PER FIGURE, SUBFIGURE E FIGURE PLACEMENT
+%\usepackage{wrapfig}
+\usepackage{subcaption}
+\usepackage{sidecap}
+\sidecaptionvpos{figure}{t}
+\usepackage{float}
+% PACCHETTI PER CAPTION E TABELLE
+\usepackage{caption}
+\captionsetup{tableposition=bottom, figureposition=bottom, font=small}
+\captionsetup[subfigure]{width=0.9\textwidth, format=hang}
+
+% PACCHETTI PER GRAFICA E COLORI
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+
+% RIFERIMENTI IPERTESTUALI
+\usepackage[colorlinks, citecolor=NavyBlue, linkcolor=blue, unicode]{hyperref}
+%% autoref di equazioni con (numero)
+\addto\extrasenglish{\def\equationautorefname~#1\null{(#1)\null}}
+% PACCHETTI VARI E PERSONALIZZAZIONI
+%\usepackage{mparhack}
+%\usepackage{ragged2e}
+
+% PACCHETTO PER BIBLIOGRAFIA
+%\usepackage{natbib}
+%\bibliographystyle{unsrt}
+\usepackage[sorting=none]{biblatex}
+\usepackage{csquotes}
+\addbibresource{citations.bib}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+      % Remove language
+      \step[fieldset=language, null]
+    }
+    \map{
+      % If it contains a field eprinttype...
+      \step[fieldsource=eprinttype, final]
+      % ... remove the urldate and url
+      \step[fieldset=urldate, null]
+      \step[fieldset=url, null]
+    }
+    \map{
+      % If it is not @online, always remove urldate and url
+      \pernottype{online}
+      % ... remove the urldate and url
+      \step[fieldset=urldate, null]
+      \step[fieldset=url, null]
+    }
+    \map{
+      % If it is @online remove month, year, urldate
+      \pertype{online}
+      \step[fieldset=urldate, null]
+      \step[fieldset=month, null]
+      \step[fieldset=year, null]
+    }
+  }
+}
+
+\setlength\parindent{0pt}
+
+\title{\LARGE{Report of second year activities}}
+\author{\large{PhD student: Dario Zarcone}\\\large{Supervisor: Prof. Salvatore Miccichè}}
+\date{\normalsize{October 20th, 2025}}
+\subject{\small{Università degli Studi di Palermo\\Dipartimento di Fisica e Chimica - Emilio Segrè\\PhD Course in Physical and Chemical Sciences\\Cycle XXXIX}}
+
+\begin{document}
+\maketitle
+
+This report summarizes the activities and projects I undertook during the second year of my PhD in Physical Sciences at the University of Palermo. My work, continuing from the first year, focused on two main topics: the application of complex systems methods on a dataset of homicides in Sicily, and the development of tools for processing text documents at scale.
+
+The former involved a collaboration with the Prosecutor's Office of Palermo, who provided the dataset and valuable insights into the context of the data; the latter involved a collaboration with the Institute for Cross-Disciplinary Physics and Complex Systems (IFISC) in Palma de Mallorca, Spain, where I spent a four months visiting period under the supervision of Prof. David Sanchez to learn advanced text analysis techniques on a newspaper dataset.
+
+I also worked on the development of change point analysis techniques, focusing on methods for detecting changes in time series, with applications in both the homicide dataset and the newspaper corpus.
+
+The following sections detail these projects, concluding with a list of conferences I attended and publications I contributed to during this year.
+
+\input{sections/1-murders.tex}
+\input{sections/2-text.tex}
+\input{sections/3-changepoints.tex}
+\input{sections/4-other.tex}
+
+\pagebreak
+
+\printbibliography
+
+\end{document}
