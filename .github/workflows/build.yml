@@ -77,6 +77,8 @@ jobs:
         with:
           path: artifacts
           pattern: '*.pdf'
+      - name: List artifacts
+        run: tree artifacts
       # Create or update release and upload PDF
       - uses: softprops/action-gh-release@v2
         with:
