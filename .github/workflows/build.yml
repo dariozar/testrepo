@@ -76,6 +76,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+          pattern: '*.pdf'
       # Create or update release and upload PDF
       - uses: softprops/action-gh-release@v2
         with:
