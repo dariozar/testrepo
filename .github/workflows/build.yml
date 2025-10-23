@@ -83,4 +83,4 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          files: 'artifacts/*.pdf'
+          files: 'artifacts/**/*.pdf'
