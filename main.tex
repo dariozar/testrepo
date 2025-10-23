@@ -1,0 +1,198 @@
+\documentclass[11pt]{article}
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+\usepackage[english]{babel}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[a4paper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+% Table packages
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{subcaption}
+\usepackage{float}
+
+\title{Report on mafia murders data}
+\author{Dario Zarcone}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  This report is a summary of the temporal analysis of a unique electronic archive of microdata of mafia-related murders occurred in the western part of Sicily, mainly in Palermo, from 1947 to 2024.
+  The archive includes names, dates, and locations of the events, covering key periods such as the so-called Mafia Wars and the Mafia terror period of the 1990s.
+
+  By analyzing the time series, we identified analogies with complex systems like earthquake dynamics, neural activity and financial markets, particularly the emergence of scaling laws and non-trivial inter-event time distributions. The time series was thus modeled with an auto-exciting process, namely an Hawkes process, showing the presence of auto-exciting behaviour, which highlights the effect of internal conflicts in Cosa Nostra.
+
+  Finally, a change point analysis was conducted to detect the different time periods of mafia history.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+The rise and fall of the mafia phenomenon in Sicily has profoundly influenced Italy's modern history. One of the main instruments historically employed by Cosa Nostra to impose its power has been targeted homicides. Rather than being random events, these acts are often later revealed through law enforcement operations and judicial investigations to be part of the complex political strategies of organized crime. We try to see if this "order behind the chaos" can be found in a completely data-driven approach.
+
+In collaboration with the Prosecutor's Office of Palermo, we compiled a mostly comprehensive archive of homicides in Sicily from 1945 to the present day. The dataset includes names, dates, and locations of the events, covering key periods such as the so-called Mafia Wars. By analyzing the time series, we identified analogies with complex systems like earthquake dynamics \cite{lippiello_scaling_2012}, neural activity \cite{lombardi_temporal_2014, de_arcangelis_criticality_2014}, and financial markets \cite{lillo_power_2003}, particularly the emergence of scaling laws and non-trivial inter-event time distributions. We further modeled the data using a Hawkes process \cite{bacry_hawkes_2015, laub_elements_2021}, revealing that the temporal structure of the homicide series provides insights into its underlying generative mechanisms. This follows other notable works which have shown that the spatial and temporal organization of crime in a city have some precise characteristics: for example, \cite{mohler2011, mohler2014} show that specific types of crime data is highly clustered, and model it through a self-exciting point process.
+
+We will discuss if certain bursts of activity can be interpreted as cascades of triggered events, and if there is a characteristic timescale. This approach provides a quantitative description of the escalation dynamics of organized crime, contributing to the developing of data-driven approaches for historical and criminological analysis.
+
+Finally, an unsupervised change-point detection method is used to find the most significant \textit{change points} in the time series. By comparing the periods found from the data with the periods of mafia history we are able to find a good agreement, which is proof of the power of a data-oriented approach for studying organized crime.
+
+\section{The archive}
+The archive we analysed was provided by the Prosecutor's Office of Palermo and is a collection of about 5000 events occurred in Sicily since postwar until 2024.
+
+The recorded events are homicides, attempted homicides and disappearances and were collected in more than twenty years of work by the Prosecutor's Office from various sources such as police reports and court documents. The archive was supplemented with some events extracted from  from unstructured text files, also provided by the Prosecutor's Office of Palermo.
+
+Every entry of the archive is an event with information about the victim's name, the date of the event, the city and/or a more specific location inside the city where the event happened, murder weapon, and sometimes some other unstructured information about the victim or the dynamics of the event.
+
+While some events are rich with information, others are rather incomplete. As for the subsequent analysis we consider just the temporal dynamics, it's important to note that we have exact date information (up to the day) for 4933 events (approximately 94\% of cases), while for 5151 events (approximately 98\% of cases) we know the month and year of the event, and for 5209 events (over 99\% of cases) at least the year is known.
+
+%ADD EXAMPLE OF DATA
+
+%ADD FIGURE HISTOGRAM
+
+\section{Point Processes}
+This kind of data can be understood as being the realization of a stochastic process; in particular, as a collection of events in time, it can be seen as $\{T_i, \mathbf{D}_i\}_{i \in \mathbb{N}}$, in which $T_i$ is the \textit{arrival time} and $\mathbf{D}_i$ is in general the other data about the event. This kind of stochastic processes is usually called a \textbf{point process}.
+
+In this section a very short review of point processes is given, to establish a framework for the analysis.
+
+\subsection{Definition of Point Processes and Relationship with Counting Processes}
+
+A \textbf{point process} is a mathematical model used to describe the occurrence of events in time or space. Formally, a point process $\{T_i\}_{i \in \mathbb{N}}$ is a random collection of points on a measurable space, typically $\mathbb{R}$ for temporal processes. Each $T_i$ represents the occurrence time of an event.
+
+A key object associated with a point process is the \textbf{counting process}, defined as:
+
+\[
+  N(t) = \sum_{i} \mathbf{1}(T_i \leq t)
+\]
+
+where $N(t)$ counts the number of events up to time $t$. Point processes and counting processes are closely linked: a point process is often characterized via its associated counting process, which is an increasing, integer-valued stochastic process.
+
+\subsection{Intensity Function, Conditional Intensity Function, and Compensator}
+
+\subsubsection{Intensity Function}
+
+The \textbf{intensity function} $\lambda(t)$ describes the rate at which events occur at time $t$. If the point process is simple (i.e., no simultaneous events), the intensity function is given by:
+
+\[
+  \lambda(t) = \lim_{\Delta t \to 0} \frac{\mathbb{E}[N(t+\Delta t) - N(t)]}{\Delta t}
+\]
+
+which represents the expected number of events in a small time interval $[t, t+\Delta t)$ per unit time.
+
+\subsubsection{Conditional Intensity Function}
+
+A more general concept is the \textbf{conditional intensity function}, which incorporates past information. Given the history $\mathcal{F}_t$ up to time $t$, the conditional intensity is:
+
+\[
+  \lambda^*(t) = \lim_{\Delta t \to 0} \frac{\mathbb{E}[N(t+\Delta t) - N(t) \mid \mathcal{F}_t]}{\Delta t}
+\]
+
+This function is particularly important in non-Poissonian processes, where event occurrences are influenced by past events.
+
+\subsubsection{Compensator}
+
+The \textbf{compensator} $\Lambda(t)$ of a point process is a predictable, non-decreasing process that satisfies:
+
+\[
+  M(t) = N(t) - \Lambda(t)
+\]
+
+where $M(t)$ is a martingale, i.e. a stochastic process with constant expected value in time. The compensator provides a decomposition of $N(t)$ into a predictable and a martingale part, crucial for modeling and statistical inference. For a process with conditional intensity $\lambda^*(t)$, the compensator is given by:
+
+\[
+  \Lambda(t) = \int_0^t \lambda^*(s) ds.
+\]
+
+\subsection{Time-censored data}
+
+In a point process there should be an event per time; this means that the $t_i$ has to be known with a good enough resolution. While possible for many applications, for many others (in social science, for example) the time data is not complete, maybe because it's only available up to a certain point, in coarse resolution, or in aggregated form. When this happens the data is considered \textit{time-censored}, and in particular when the resolution is coarse it's called \textit{interval-censored}.
+
+\subsection{Poisson Processes}
+
+The \textbf{Poisson process} is a fundamental example of a point process characterized by independent and exponentially distributed inter-arrival times.
+
+\subsubsection{Homogeneous Poisson Process}
+
+A homogeneous Poisson process has a constant intensity $\lambda > 0$, meaning that the number of events in any interval of length $\Delta t$ follows a Poisson distribution:
+
+\[
+  P(N(t+\Delta t) - N(t) = k) = \frac{(\lambda \Delta t)^k e^{-\lambda \Delta t}}{k!}, \quad k = 0,1,2,\dots
+\]
+
+The interarrival times $T_{i+1} - T_i$ are i.i.d. exponential random variables with mean $1/\lambda$.
+
+\subsubsection{Inhomogeneous Poisson Process}
+
+An inhomogeneous Poisson process has a time-dependent intensity function $\lambda(t)$, leading to a non-constant event rate. The probability of observing $k$ events in an interval $[t, t+\Delta t)$ is:
+
+\[
+  P(N(t+\Delta t) - N(t) = k) = \frac{(\Lambda(t+\Delta t) - \Lambda(t))^k e^{-(\Lambda(t+\Delta t) - \Lambda(t))}}{k!}
+\]
+
+where the compensator is:
+
+\[
+  \Lambda(t) = \int_0^t \lambda(s) ds.
+\]
+
+\subsection{Hawkes Processes}
+
+The \textbf{Hawkes process} is a self-exciting point process where past events increase the likelihood of future occurrences, making it suitable for modeling clustered or contagious phenomena such as crime, financial transactions, and social interactions.
+
+\subsubsection{Definition of Hawkes Processes}
+
+A \textbf{Hawkes process} is a point process where the intensity function depends on past events through a self-excitation mechanism:
+
+\[
+  \lambda^*(t) = \lambda_0 + \sum_{T_i < t} g(t - T_i)
+\]
+
+where:
+
+\begin{itemize}
+  \item $\lambda_0 > 0$ is the \textbf{baseline intensity},
+  \item $g(t)$ is the \textbf{excitation function} or \textbf{kernel}, controlling how past events influence future ones.
+\end{itemize}
+
+Common choices for $g(t)$ include exponential decays such as:
+
+\[
+  g(t) = \alpha e^{-\beta t}, \quad \alpha, \beta > 0.
+\]
+
+\subsubsection{Multivariate Hawkes Processes}
+
+A \textbf{multivariate Hawkes process} extends the model to multiple interacting event types $\{N_k(t)\}_{k=1}^{K}$, where the intensity of process $k$ depends on events from all processes:
+
+\[
+  \lambda_k^*(t) = \lambda_{0,k} + \sum_{j=1}^{K} \sum_{T_i^j < t} g_{kj}(t - T_i^j).
+\]
+
+The matrix $\{g_{kj}(\cdot)\}$ captures cross-excitation effects, making this model useful for analyzing interactions between different event sources, such as gang-related crimes or financial transactions across markets.
+
+\subsubsection{Marked Hawkes Processes}
+
+A \textbf{marked Hawkes process} extends the multivariate case by associating each event with a random \textbf{mark} $X_i$, such as severity, type, or category. The conditional intensity then incorporates marks as:
+
+\[
+  \lambda^*(t | X_i) = \lambda_0 + \sum_{T_i < t} g(t - T_i, X_i).
+\]
+
+Marked Hawkes processes are widely used when additional contextual information is available, such as transaction sizes in finance or severity levels in crime data. Moreover, a spatial position can be seen as a mark where $X_i = (x_i,y_i)$ - marked processes are the foundation of spatio-temporal Hawkes processes.
+
+\section{Time series of event counts}
+
+The data is better understood, in this sense, as a \textbf{time series of event counts}, so an
+
+\nocite{*}
+\bibliographystyle{ieeetr}
+
+\end{document}

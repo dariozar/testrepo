@@ -1,0 +1,59 @@
+name: build PDF
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  workflow_dispatch:  # allows manual running of the workflow
+  
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.set-matrix.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: set-matrix
+        run: |
+          projects=$(find . -name main.tex -printf '%h\n' | sed 's|^\./||')
+          if [ -f main.tex ]; then
+            projects=$(echo -e ".\n$projects")
+          fi
+          json=$(echo "$projects" | jq -R . | jq -s .)
+          echo "projects=$json" >> $GITHUB_OUTPUT
+
+  build_and_release:
+    runs-on: ubuntu-latest
+    needs: discover
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.discover.outputs.projects) }}
+    permissions:
+      contents: write  # needed for creating releases
+    steps:
+      - uses: actions/checkout@v5
+      # Set up Mise
+      - uses: jdx/mise-action@v3
+      # Install tex packages
+      - name: Install TeX packages
+        run: mise run install-tex-packages
+      - name: Build PDF for ${{ matrix.project }}
+        run: mise run build --project "${{ matrix.project }}"
+      # Set pdf name based on project path
+      - name: Rename and move PDF
+        id: rename-pdf
+        run: |
+          project_path="${{ matrix.project }}"
+          if [ "$project_path" = "." ]; then
+            pdf_name="${{ github.event.repository.name }}.pdf"
+          else
+            pdf_name="$(basename "$project_path").pdf"
+          fi
+          mv "${{ matrix.project }}/main.pdf" "$pdf_name"
+          echo "pdf_name=$pdf_name" >> $GITHUB_OUTPUT
+      # Create or update release and upload PDF
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: ${{ steps.rename-pdf.outputs.pdf_name }}.pdf

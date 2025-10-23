@@ -1,0 +1,50 @@
+# Mise configuration file for LaTeX project
+
+# Tools: formatters, bibliography cleaners, tinytex
+[tools]
+"github:WGUNDERWOOD/tex-fmt" = "latest"
+"pipx:bib_cleaner" = "latest"
+tinytex = "latest"
+
+# By default the project root is the current working directory
+# It can be overridden by setting the `project_root` variable
+#   in the [vars] section of a mise.toml file 
+[vars]
+project_root = "{{ cwd }}"
+
+# Task configurations
+[task_config]
+dir = "{{ vars.project_root }}"
+
+[tasks.save-tex-packages]
+description = "Save installed TeX packages"
+run = '''
+  tlmgr list --only-installed --data name > tex-packages.txt || true
+'''
+
+[tasks.install-tex-packages]
+description = "Install required TeX packages"
+run = '''
+  grep -vE '^\s*#' tex-packages.txt | xargs tlmgr install
+'''
+
+[tasks.build]
+description = "Build the PDF using latexmk"
+run = '''
+latexmk -interaction=nonstopmode -file-line-error -pdf -outdir=build main.tex
+'''
+
+[tasks.format]
+description = "Format LaTeX source files"
+run = "tex-fmt --nowrap --recursive"
+
+[tasks.clean-bib]
+description = "Clean bibliography files"
+run = '''
+newbibfile="$(basename {{arg(name='bibfile')}} .bib)_clean.bib"
+bib_cleaner -t **/*.tex -o '$newbibfile' '{{arg(name='bibfile')}}'
+'''
+
+[tasks.clean]
+description = "Clean auxiliary files"
+run = "latexmk -C -outdir=build main.tex"
