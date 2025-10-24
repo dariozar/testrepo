@@ -1,8 +1,6 @@
 name: build PDF
 on:
   push:
-    branches:
-      - main
     tags:
       - '*'
   workflow_dispatch:  # allows manual running of the workflow
