@@ -70,7 +70,7 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git tag -f latest
+          git tag -f ${{ github.ref_name }}
           git push origin latest --force
       - name: Download built PDFs
         uses: actions/download-artifact@v4
@@ -79,5 +79,5 @@ jobs:
       # Create or update release and upload PDF
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
+          tag_name: ${{ github.ref_name }}
           files: 'artifacts/**/*.pdf'
