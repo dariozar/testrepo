@@ -39,6 +39,7 @@ jobs:
       - name: Install TeX packages
         run: mise run install-tex-packages
       - name: Build PDF for ${{ matrix.project.name }}
+        run: |
           cd "${{ matrix.project.folder }}"
           mise run build -jobname "${{ matrix.project.name }}"
       - name: Upload artifacts
