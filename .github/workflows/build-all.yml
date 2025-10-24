@@ -10,6 +10,8 @@ on:
 jobs:
   build-all:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed for creating releases
     steps:
       - uses: actions/checkout@v5
       - name: Set up Mise

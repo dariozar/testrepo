@@ -26,8 +26,6 @@ jobs:
     strategy:
       matrix:
         project: ${{ fromJson(needs.discover.outputs.projects) }}
-    permissions:
-      contents: write  # needed for creating releases
     steps:
       - uses: actions/checkout@v5
       # Set up Mise
