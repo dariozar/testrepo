@@ -14,10 +14,17 @@ jobs:
       projects: ${{ steps.set-matrix.outputs.projects }}
     steps:
       - uses: actions/checkout@v5
-      - id: set-matrix
-        run: |
+      - run: |
           projects=$(find . -type f -name 'main.tex' -exec dirname {} \;)
-          json=$(echo "$projects" | jq -R -s -c 'split("\n") - [""]')
+          json=$(echo "$projects" | jq -R -s -c '
+            split("\n") | map({
+              folder: .,
+              name: (
+                if . == "." then "${{ github.event.repository.name }}"
+                else (split("/") | last) end
+              )
+            )
+          )
           echo "projects=$json" >> $GITHUB_OUTPUT
 
   build:
@@ -33,28 +40,14 @@ jobs:
       # Install tex packages
       - name: Install TeX packages
         run: mise run install-tex-packages
-      - name: Build PDF for ${{ matrix.project }}
-        run: |
-          cd "${{ matrix.project }}"
-          mise run build
-      # Set pdf name based on project path
-      - name: Rename and move PDF
-        id: rename-pdf
-        run: |
-          project_path="${{ matrix.project }}"
-          if [ "$project_path" = "." ]; then
-            pdf_name="${{ github.event.repository.name }}.pdf"
-          else
-            pdf_name="$(basename "$project_path").pdf"
-          fi
-          mkdir -p artifacts
-          mv "$project_path/build/main.pdf" "artifacts/$pdf_name"
-          echo "pdf_name=$pdf_name" >> $GITHUB_OUTPUT
+      - name: Build PDF for ${{ matrix.project.name }}
+          cd "${{ matrix.project.folder }}"
+          mise run build -jobname "${{ matrix.project.name }}"
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.rename-pdf.outputs.pdf_name }}
-          path: artifacts/*.pdf
+          name: ${{ matrix.project.name }}
+          path: "${{ matrix.project.folder }}/build/*.pdf"
 
   release:
     runs-on: ubuntu-latest
