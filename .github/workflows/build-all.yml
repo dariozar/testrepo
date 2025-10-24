@@ -24,7 +24,10 @@ jobs:
             echo "Building project in $project"
             cd "$project"
             mise run build
-            pdf_name="$(basename "$project").pdf"
+            pdf_name="$(
+              [ "$project" = "." ] && echo ${{ github.event.repository.name }} ||
+              basename "$project"
+            ).pdf"
             cd -
             mv "$project/build/main.pdf" "artifacts/$pdf_name"
           done
