@@ -21,7 +21,7 @@ jobs:
                 if . == "." then "${{ github.event.repository.name }}"
                 else (split("/") | last) end
               )
-            )
+            )'
           )
           echo "projects=$json" >> $GITHUB_OUTPUT
 
